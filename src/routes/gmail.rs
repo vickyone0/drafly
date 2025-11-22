@@ -1,5 +1,6 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse};
 use serde::Deserialize;
+use crate::middleware::AuthenticatedUser;
 // Remove unused imports
 // use crate::models::EmailRow;
 // use sqlx::Row;
@@ -12,15 +13,17 @@ pub fn init(cfg: &mut web::ServiceConfig) {
 }
 
 #[get("/emails")]
-async fn list_emails() -> Result<HttpResponse, actix_web::Error> {
+async fn list_emails(user: AuthenticatedUser) -> Result<HttpResponse, actix_web::Error> {
     let pool = crate::db::get_pool();
     let rows = sqlx::query!(
         r#"
         SELECT id, gmail_id, thread_id, user_email, sender, to_recipients, subject, snippet, body_text, body_html, labels, fetched_at
         FROM emails
+        WHERE user_email = $1
         ORDER BY fetched_at DESC
         LIMIT 100
-        "#
+        "#,
+        user.email
     )
     .fetch_all(pool)
     .await
@@ -48,15 +51,16 @@ async fn list_emails() -> Result<HttpResponse, actix_web::Error> {
 }
 
 #[get("/emails/{id}")]
-async fn get_email(path: web::Path<i32>) -> Result<HttpResponse, actix_web::Error> {
+async fn get_email(path: web::Path<i32>, user: AuthenticatedUser) -> Result<HttpResponse, actix_web::Error> {
     let id = path.into_inner();
     let pool = crate::db::get_pool();
     let row = sqlx::query!(
         r#"
         SELECT id, gmail_id, thread_id, user_email, sender, to_recipients, subject, snippet, body_text, body_html, labels, fetched_at
-        FROM emails WHERE id = $1
+        FROM emails WHERE id = $1 AND user_email = $2
         "#,
-        id
+        id,
+        user.email
     )
     .fetch_optional(pool)
     .await
@@ -87,23 +91,8 @@ async fn get_email(path: web::Path<i32>) -> Result<HttpResponse, actix_web::Erro
 }
 
 #[post("/internal/fetch-unread")]
-async fn fetch_unread() -> Result<HttpResponse, actix_web::Error> {
-    let pool = crate::db::get_pool();
-    let rec = sqlx::query!("SELECT email FROM user_tokens LIMIT 1")
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| {
-            log::error!("db err: {:?}", e);
-            actix_web::error::ErrorInternalServerError("db error")
-        })?;
-
-    let user_email = match rec {
-        Some(r) => match r.email {
-            Some(ref email) => email.clone(),
-            None => return Ok(HttpResponse::BadRequest().body("no user token")),
-        },
-        None => return Ok(HttpResponse::BadRequest().body("no user tokenss")),
-    };
+async fn fetch_unread(user: AuthenticatedUser) -> Result<HttpResponse, actix_web::Error> {
+    let user_email = user.email;
 
     let access_token = match crate::services::google_oauth::refresh_access_token_for_user(&user_email).await {
         Ok(at) => at,
@@ -153,24 +142,9 @@ pub struct FetchOnePath {
 }
 
 #[post("/internal/fetch/{gmail_id}")]
-async fn fetch_one(path: web::Path<FetchOnePath>) -> Result<HttpResponse, actix_web::Error> {
+async fn fetch_one(path: web::Path<FetchOnePath>, user: AuthenticatedUser) -> Result<HttpResponse, actix_web::Error> {
     let gmail_id = path.into_inner().gmail_id;
-    let pool = crate::db::get_pool();
-    let rec = sqlx::query!("SELECT email FROM user_tokens LIMIT 1")
-        .fetch_optional(pool)
-        .await
-        .map_err(|e| {
-            log::error!("db err: {:?}", e);
-            actix_web::error::ErrorInternalServerError("db error")
-        })?;
-
-    let user_email = match rec {
-        Some(r) => match r.email {
-            Some(ref email) => email.clone(),
-            None => return Ok(HttpResponse::BadRequest().body("no user tokens")),
-        },
-        None => return Ok(HttpResponse::BadRequest().body("no user tokens")),
-    };
+    let user_email = user.email;
 
     match crate::services::gmail_fetcher::fetch_and_store_message(&user_email, &gmail_id).await {
         Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({"ok": true}))),

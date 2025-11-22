@@ -1,9 +1,9 @@
 use actix_web::{post, get, patch, web, HttpResponse};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use crate::db;
+use crate::middleware::AuthenticatedUser;
 //use crate::services::ai_service;
 use crate::services::groq_ai;
-use sqlx::Row;
 
 #[derive(Deserialize)]
 pub struct DraftRequest {
@@ -12,13 +12,15 @@ pub struct DraftRequest {
 }
 
 #[post("/drafts/generate")]
-async fn generate_draft(req: web::Json<DraftRequest>) -> HttpResponse {
+async fn generate_draft(req: web::Json<DraftRequest>, user: AuthenticatedUser) -> HttpResponse {
     let pool = db::get_pool();
+    let user_email = user.email.clone();
 
-    // fetch email content
+    // fetch email content with sender and subject
     let email_row = sqlx::query!(
-        "SELECT body_text, user_email FROM emails WHERE id = $1",
-        req.email_id
+        "SELECT body_text, sender, subject, user_email FROM emails WHERE id = $1 AND user_email = $2",
+        req.email_id,
+        user_email
     )
     .fetch_optional(pool)
     .await
@@ -28,13 +30,15 @@ async fn generate_draft(req: web::Json<DraftRequest>) -> HttpResponse {
         return HttpResponse::NotFound().body("Email not found");
     }
 
-    let email_body = email_row.as_ref().unwrap().body_text.clone().unwrap_or_default();
-    let user_email = email_row.as_ref().unwrap().user_email.clone().unwrap_or_default();
+    let email_data = email_row.unwrap();
+    let email_body = email_data.body_text.clone().unwrap_or_default();
+    let sender = email_data.sender.clone().unwrap_or_default();
+    let subject = email_data.subject.clone().unwrap_or_default();
 
     let tone = req.tone.clone().unwrap_or("friendly".into());
 
     // generate draft using AI
-    let generated = match groq_ai::generate_reply(&email_body, &tone).await {
+    let generated = match groq_ai::generate_reply(&email_body, &sender, &subject, &tone).await {
         Ok(text) => text,
         Err(e) => return HttpResponse::InternalServerError().body(e),
     };
@@ -62,13 +66,14 @@ async fn generate_draft(req: web::Json<DraftRequest>) -> HttpResponse {
 }
 
 #[get("/drafts/{id}")]
-async fn get_draft(path: web::Path<i32>) -> HttpResponse {
+async fn get_draft(path: web::Path<i32>, user: AuthenticatedUser) -> HttpResponse {
     let id = path.into_inner();
     let pool = db::get_pool();
 
     let row = sqlx::query!(
-        "SELECT * FROM drafts WHERE id = $1",
-        id
+        "SELECT * FROM drafts WHERE id = $1 AND user_email = $2",
+        id,
+        user.email
     )
     .fetch_optional(pool)
     .await
@@ -94,14 +99,15 @@ pub struct DraftUpdate {
 }
 
 #[patch("/drafts/{id}")]
-async fn update_draft(path: web::Path<i32>, req: web::Json<DraftUpdate>) -> HttpResponse {
+async fn update_draft(path: web::Path<i32>, req: web::Json<DraftUpdate>, user: AuthenticatedUser) -> HttpResponse {
     let id = path.into_inner();
     let pool = db::get_pool();
 
     sqlx::query!(
-        "UPDATE drafts SET content = $1, updated_at = NOW() WHERE id = $2",
+        "UPDATE drafts SET content = $1, updated_at = NOW() WHERE id = $2 AND user_email = $3",
         req.content,
-        id
+        id,
+        user.email
     )
     .execute(pool)
     .await
@@ -113,13 +119,14 @@ async fn update_draft(path: web::Path<i32>, req: web::Json<DraftUpdate>) -> Http
 }
 
 #[post("/drafts/{id}/approve")]
-async fn approve_draft(path: web::Path<i32>) -> HttpResponse {
+async fn approve_draft(path: web::Path<i32>, user: AuthenticatedUser) -> HttpResponse {
     let id = path.into_inner();
     let pool = db::get_pool();
 
     sqlx::query!(
-        "UPDATE drafts SET status = 'approved', updated_at = NOW() WHERE id = $1",
-        id
+        "UPDATE drafts SET status = 'approved', updated_at = NOW() WHERE id = $1 AND user_email = $2",
+        id,
+        user.email
     )
     .execute(pool)
     .await
@@ -131,15 +138,16 @@ async fn approve_draft(path: web::Path<i32>) -> HttpResponse {
 }
 
 #[post("/drafts/{id}/send")]
-async fn send_draft(path: web::Path<i32>) -> HttpResponse {
+async fn send_draft(path: web::Path<i32>, user: AuthenticatedUser) -> HttpResponse {
     let draft_id = path.into_inner();
     let pool = db::get_pool();
 
     // fetch draft
     let draft = sqlx::query!(
         "SELECT id, email_id, user_email, content, status 
-         FROM drafts WHERE id = $1",
-        draft_id
+         FROM drafts WHERE id = $1 AND user_email = $2",
+        draft_id,
+        user.email
     )
     .fetch_optional(pool)
     .await
@@ -180,9 +188,9 @@ async fn send_draft(path: web::Path<i32>) -> HttpResponse {
 
     match result {
         Ok(sent_gmail_id) => {
-            // update draft status
+            // update draft status to "sent"
             sqlx::query!(
-                "UPDATE drafts SET sent = TRUE, sent_gmail_id = $1 WHERE id = $2",
+                "UPDATE drafts SET status = 'sent', sent = TRUE, sent_gmail_id = $1, updated_at = NOW() WHERE id = $2",
                 sent_gmail_id,
                 d.id
             )
@@ -200,8 +208,38 @@ async fn send_draft(path: web::Path<i32>) -> HttpResponse {
 }
 
 
+#[get("/drafts")]
+async fn list_drafts(user: AuthenticatedUser) -> HttpResponse {
+    let pool = db::get_pool();
+
+    let rows = sqlx::query!(
+        "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at 
+         FROM drafts 
+         WHERE user_email = $1 
+         ORDER BY created_at DESC",
+        user.email
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
+
+    let drafts: Vec<_> = rows.into_iter().map(|r| {
+        serde_json::json!({
+            "id": r.id,
+            "email_id": r.email_id,
+            "content": r.content,
+            "tone": r.tone,
+            "status": r.status,
+            "created_at": r.created_at
+        })
+    }).collect();
+
+    HttpResponse::Ok().json(drafts)
+}
+
 pub fn init(cfg: &mut web::ServiceConfig) {
-    cfg.service(generate_draft)
+    cfg.service(list_drafts)
+        .service(generate_draft)
         .service(get_draft)
         .service(update_draft)
         .service(approve_draft)
