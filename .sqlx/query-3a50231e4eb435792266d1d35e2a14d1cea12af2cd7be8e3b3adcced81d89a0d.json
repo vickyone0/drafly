@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, gmail_id, thread_id, user_email, sender, to_recipients, subject, snippet, body_text, body_html, labels, fetched_at\n        FROM emails\n        WHERE user_email = $1\n        ORDER BY fetched_at DESC\n        LIMIT 100\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "gmail_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "thread_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "sender",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "to_recipients",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "subject",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "snippet",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "body_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "body_html",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "labels",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 11,
+        "name": "fetched_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "3a50231e4eb435792266d1d35e2a14d1cea12af2cd7be8e3b3adcced81d89a0d"
+}

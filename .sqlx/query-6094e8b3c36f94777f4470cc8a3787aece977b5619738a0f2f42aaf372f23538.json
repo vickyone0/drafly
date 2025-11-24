@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO user_tokens (email, refresh_token)\n         VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6094e8b3c36f94777f4470cc8a3787aece977b5619738a0f2f42aaf372f23538"
+}

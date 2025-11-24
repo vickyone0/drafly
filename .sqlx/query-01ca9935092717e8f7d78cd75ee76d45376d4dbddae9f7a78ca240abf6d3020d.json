@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT sender, subject, thread_id FROM emails WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sender",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "subject",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "thread_id",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "01ca9935092717e8f7d78cd75ee76d45376d4dbddae9f7a78ca240abf6d3020d"
+}

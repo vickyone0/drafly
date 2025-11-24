@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT body_text, sender, subject, user_email FROM emails WHERE id = $1 AND user_email = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "body_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "sender",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "subject",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "user_email",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "ccaffbdcf3ef33ed08f1d96218be4bab0e1b05b5b89f8b650452d331cef2096a"
+}

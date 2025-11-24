@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE drafts SET status = 'approved', updated_at = NOW() WHERE id = $1 AND user_email = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "26cbc6f8806b7b2aa7b1977c9eee8e12adc50edd76c3e02cd8c1fb152609f917"
+}

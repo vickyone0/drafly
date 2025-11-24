@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at \n         FROM drafts \n         WHERE user_email = $1 \n         ORDER BY created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "email_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "tone",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "status",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "c30691032acf47b47eaae5e41a1b00c2ab4b1bfc2b813feaf766f80d9f653ded"
+}

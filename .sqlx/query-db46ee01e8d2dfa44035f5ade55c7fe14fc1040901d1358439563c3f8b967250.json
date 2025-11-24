@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE drafts SET status = 'sent', sent = TRUE, sent_gmail_id = $1, updated_at = NOW() WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "db46ee01e8d2dfa44035f5ade55c7fe14fc1040901d1358439563c3f8b967250"
+}

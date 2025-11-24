@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, email_id, user_email, content, status \n         FROM drafts WHERE id = $1 AND user_email = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "email_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "50fbd37418c92390084d19fd1fa8c6a868079c4ea3ca4e0ad2163a7290709d58"
+}
