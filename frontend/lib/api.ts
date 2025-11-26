@@ -22,6 +22,10 @@ export interface GenerateDraftResponse {
   content: string;
 }
 
+export interface SendDraftResponse {
+  sent_gmail_id: string;
+}
+
 
 
 export interface EmailDetail extends Email {
@@ -151,11 +155,9 @@ class ApiClient {
     });
   }
 
-  async sendDraft(id: number) {
-    return this.request(`/drafts/${id}/send`, {
-      method: "POST",
-    });
-  }
+  async sendDraft(id: number): Promise<SendDraftResponse> {
+  return this.request<SendDraftResponse>(`/internal/send-draft/${id}`, { method: "POST" });
+}
 }
 
 export const api = new ApiClient();
