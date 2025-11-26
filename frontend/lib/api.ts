@@ -13,6 +13,17 @@ export interface Email {
   fetched_at: string;
 }
 
+export interface FetchUnreadResponse {
+  fetched: boolean;
+}
+
+export interface GenerateDraftResponse {
+  draft_id: number;
+  content: string;
+}
+
+
+
 export interface EmailDetail extends Email {
   body_text: string | null;
   body_html: string | null;
@@ -103,9 +114,9 @@ class ApiClient {
     return this.request(`/emails/${id}`);
   }
 
-  async fetchUnread() {
-    return this.request("/internal/fetch-unread", { method: "POST" });
-  }
+ async fetchUnread(): Promise<FetchUnreadResponse> {
+  return this.request<FetchUnreadResponse>("/internal/fetch-unread", { method: "POST" });
+}
 
   async fetchEmail(gmailId: string) {
     return this.request(`/internal/fetch/${gmailId}`, { method: "POST" });
@@ -116,12 +127,12 @@ class ApiClient {
     return this.request("/drafts");
   }
 
-  async generateDraft(emailId: number, tone?: string) {
-    return this.request("/drafts/generate", {
-      method: "POST",
-      body: JSON.stringify({ email_id: emailId, tone }),
-    });
-  }
+ async generateDraft(emailId: number, tone: string): Promise<GenerateDraftResponse> {
+  return this.request<GenerateDraftResponse>("/internal/generate-draft", {
+    method: "POST",
+    body: JSON.stringify({ email_id: emailId, tone }),
+  });
+}
 
   async getDraft(id: number): Promise<Draft> {
     return this.request(`/drafts/${id}`);

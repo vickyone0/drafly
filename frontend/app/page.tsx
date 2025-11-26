@@ -8,6 +8,15 @@ import { Button } from '@/components/ui/button';
 import { api, Email, EmailDetail } from '@/lib/api';
 import { RefreshCw } from 'lucide-react';
 
+interface GenerateDraftResponse {
+  draft_id: number;
+  content: string;
+}
+
+interface FetchUnreadResponse {
+  fetched: boolean;
+}
+
 export default function InboxPage() {
   const [emails, setEmails] = useState<Email[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<EmailDetail | null>(null);
@@ -22,7 +31,7 @@ export default function InboxPage() {
   const loadEmails = async () => {
     try {
       setIsLoading(true);
-      const data = await api.listEmails();
+      const data: Email[] = await api.listEmails();
       setEmails(data);
     } catch (error) {
       console.error('Failed to load emails:', error);
@@ -33,7 +42,7 @@ export default function InboxPage() {
 
   const handleSelectEmail = async (email: Email) => {
     try {
-      const detail = await api.getEmail(email.id);
+      const detail: EmailDetail = await api.getEmail(email.id);
       setSelectedEmail(detail);
     } catch (error) {
       console.error('Failed to load email detail:', error);
@@ -43,7 +52,13 @@ export default function InboxPage() {
   const handleFetchUnread = async () => {
     try {
       setIsFetching(true);
-      await api.fetchUnread();
+
+      const result: FetchUnreadResponse = await api.fetchUnread();
+
+      if (!result.fetched) {
+        alert("No unread emails found");
+      }
+
       await loadEmails();
     } catch (error) {
       console.error('Failed to fetch unread emails:', error);
@@ -56,9 +71,14 @@ export default function InboxPage() {
   const handleGenerateDraft = async (emailId: number) => {
     try {
       setIsGenerating(true);
-      const result = await api.generateDraft(emailId, 'friendly');
+
+      const result: GenerateDraftResponse = await api.generateDraft(
+        emailId,
+        'friendly'
+      );
+
       alert(`Draft generated! Draft ID: ${result.draft_id}`);
-      // Redirect to drafts page
+
       window.location.href = `/drafts?draftId=${result.draft_id}`;
     } catch (error) {
       console.error('Failed to generate draft:', error);
@@ -83,15 +103,17 @@ export default function InboxPage() {
             Fetch Unread
           </Button>
         </div>
+
         <div className="flex flex-1 overflow-hidden">
           <div className="w-80 border-r">
             <EmailList
               emails={emails}
-              selectedEmailId={selectedEmail?.id || null}
+              selectedEmailId={selectedEmail?.id ?? null}
               onSelectEmail={handleSelectEmail}
               isLoading={isLoading}
             />
           </div>
+
           <div className="flex-1 overflow-y-auto p-6">
             <EmailPreview
               email={selectedEmail}
@@ -100,6 +122,7 @@ export default function InboxPage() {
             />
           </div>
         </div>
+
       </div>
     </div>
   );
