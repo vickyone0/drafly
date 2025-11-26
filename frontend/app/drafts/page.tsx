@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Sidebar } from '@/components/Sidebar';
 import { DraftEditor } from '@/components/DraftEditor';
@@ -10,7 +10,7 @@ import { api, Draft } from '@/lib/api';
 import { FileText, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 
-export default function DraftsPage() {
+function DraftsContent() {
   const searchParams = useSearchParams();
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [selectedDraft, setSelectedDraft] = useState<Draft | null>(null);
@@ -165,6 +165,20 @@ export default function DraftsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DraftsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          Loading drafts...
+        </div>
+      }
+    >
+      <DraftsContent />
+    </Suspense>
   );
 }
 

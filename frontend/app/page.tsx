@@ -17,6 +17,8 @@ interface FetchUnreadResponse {
   fetched: boolean;
 }
 
+
+
 export default function InboxPage() {
   const [emails, setEmails] = useState<Email[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<EmailDetail | null>(null);
