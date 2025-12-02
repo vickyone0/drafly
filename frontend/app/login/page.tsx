@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/lib/api';
 import { Mail } from 'lucide-react';
-
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 // Create a separate component that uses useSearchParams
 function LoginContent() {
   const router = useRouter();
