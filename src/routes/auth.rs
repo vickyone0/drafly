@@ -75,7 +75,7 @@ async fn google_callback(query: web::Query<CallbackQuery>) -> Result<HttpRespons
 
     // Redirect to frontend with token in query params
     // Frontend will extract token from URL and store it
-    let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "https://drafly.onrender.com".to_string());
+    let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string());
     let redirect_url = format!("{}/login?token={}&email={}", frontend_url, jwt, urlencoding::encode(&email));
     
     Ok(HttpResponse::Found()
