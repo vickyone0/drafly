@@ -79,6 +79,6 @@ async fn google_callback(query: web::Query<CallbackQuery>) -> Result<HttpRespons
     let redirect_url = format!("{}/login?token={}&email={}", frontend_url, jwt, urlencoding::encode(&email));
     
     Ok(HttpResponse::Found()
-        .insert_header(("Location", redirect_url))
+        .append_header(("Location", redirect_url))
         .finish())
 }
