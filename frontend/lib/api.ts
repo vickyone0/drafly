@@ -156,7 +156,7 @@ class ApiClient {
   }
 
   async sendDraft(id: number): Promise<SendDraftResponse> {
-  return this.request<SendDraftResponse>(`/internal/send-draft/${id}`, { method: "POST" });
+  return this.request<SendDraftResponse>(`/drafts/${id}/send`, { method: "POST" });
 }
 }
 
