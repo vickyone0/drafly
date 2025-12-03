@@ -1,6 +1,6 @@
 use crate::db::get_pool;
 
-pub async fn insert_token(email: &str, token: &str) {
+pub async fn insert_token(email: &str, token: &str) -> Result<(), sqlx::Error>{
     sqlx::query!(
         "INSERT INTO user_tokens (email, refresh_token)
          VALUES ($1, $2)",
@@ -10,6 +10,7 @@ pub async fn insert_token(email: &str, token: &str) {
     .execute(get_pool())
     .await
     .unwrap();
+    Ok(())
 }
 
 pub async fn get_refresh_token(email: &str) -> Option<String> {
