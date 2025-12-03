@@ -79,8 +79,10 @@ async fn google_callback(query: web::Query<CallbackQuery>) -> Result<HttpRespons
         jwt,
         urlencoding::encode(&email)
     );
+    println!("\n🔍 REDIRECTING TO: {}\n", redirect_url);
 
     Ok(HttpResponse::Found()
         .append_header(("Location", redirect_url))
         .finish())
+
 }

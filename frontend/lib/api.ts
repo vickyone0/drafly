@@ -132,7 +132,7 @@ class ApiClient {
   }
 
  async generateDraft(emailId: number, tone: string): Promise<GenerateDraftResponse> {
-  return this.request<GenerateDraftResponse>("/internal/generate-draft", {
+  return this.request<GenerateDraftResponse>("/drafts/generate", {
     method: "POST",
     body: JSON.stringify({ email_id: emailId, tone }),
   });
