@@ -15,17 +15,27 @@ async fn main() -> std::io::Result<()> {
 
     db::init().await.expect("DB init failed");
 
-    HttpServer::new(|| {
+    let frontend_url = std::env::var("FRONTEND_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+
+    println!("CORS ALLOWED ORIGIN = {}", frontend_url);
+
+    HttpServer::new(move || {
         let cors = Cors::default()
-            .allow_any_origin()
-            .allow_any_method()
-            .allow_any_header()
-            .supports_credentials();
+            .allowed_origin(&frontend_url)
+            .allowed_origin("https://courageous-pastelito-af3c6f.netlify.app")
+            .allowed_methods(vec!["GET", "POST", "PATCH", "PUT", "DELETE"])
+            .allowed_headers(vec![
+                actix_web::http::header::CONTENT_TYPE,
+                actix_web::http::header::AUTHORIZATION,
+            ])
+            .supports_credentials()
+            .max_age(3600);
 
         App::new()
             .wrap(cors)
             .wrap(Logger::default())
-            .configure(routes::auth::init)   
+            .configure(routes::auth::init)
             .configure(routes::gmail::init)
             .configure(routes::drafts::init)
     })
