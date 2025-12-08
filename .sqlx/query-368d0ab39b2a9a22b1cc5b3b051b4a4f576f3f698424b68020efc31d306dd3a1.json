@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at \n         FROM drafts \n         WHERE user_email = $1 \n         ORDER BY created_at DESC",
+  "query": "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at \n         FROM drafts \n         WHERE user_email = $1\n         ORDER BY created_at DESC",
   "describe": {
     "columns": [
       {
@@ -60,5 +60,5 @@
       true
     ]
   },
-  "hash": "c30691032acf47b47eaae5e41a1b00c2ab4b1bfc2b813feaf766f80d9f653ded"
+  "hash": "368d0ab39b2a9a22b1cc5b3b051b4a4f576f3f698424b68020efc31d306dd3a1"
 }
