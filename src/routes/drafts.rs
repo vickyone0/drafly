@@ -245,10 +245,9 @@ async fn single_draft(path: web::Path<i32>,user: AuthenticatedUser) -> HttpRespo
     let rows = sqlx::query!(
         "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at 
          FROM drafts 
-         WHERE user_email = $1,id = $2
-         ORDER BY created_at DESC",
-        user.email
-,draft_id
+         WHERE user_email = $1 AND id = $2",
+        user.email,
+        draft_id
     )
     .fetch_all(pool)
     .await
