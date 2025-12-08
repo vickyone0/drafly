@@ -238,34 +238,47 @@ async fn list_drafts(user: AuthenticatedUser) -> HttpResponse {
 }
 
 #[get("/drafts/{id}")]
-async fn single_draft(path: web::Path<i32>,user: AuthenticatedUser) -> HttpResponse {
+async fn single_draft(path: web::Path<i32>, user: AuthenticatedUser) -> HttpResponse {
     let draft_id = path.into_inner();
     let pool = db::get_pool();
 
-    let rows = sqlx::query!(
-        "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at 
-         FROM drafts 
-         WHERE user_email = $1 AND id = $2",
+    // Fetch only ONE draft
+    let row = sqlx::query!(
+        r#"
+        SELECT id, email_id, user_email, content, tone, status, created_at, updated_at 
+        FROM drafts 
+        WHERE user_email = $1 AND id = $2
+        "#,
         user.email,
         draft_id
     )
-    .fetch_all(pool)
-    .await
-    .unwrap();
+    .fetch_optional(pool)
+    .await;
 
-    let drafts: Vec<_> = rows.into_iter().map(|r| {
-        serde_json::json!({
+    match row {
+        Ok(Some(r)) => HttpResponse::Ok().json(serde_json::json!({
             "id": r.id,
             "email_id": r.email_id,
             "content": r.content,
             "tone": r.tone,
             "status": r.status,
-            "created_at": r.created_at
-        })
-    }).collect();
+            "created_at": r.created_at,
+            "updated_at": r.updated_at,
+        })),
 
-    HttpResponse::Ok().json(drafts)
+        Ok(None) => HttpResponse::NotFound().json(serde_json::json!({
+            "error": "Draft not found"
+        })),
+
+        Err(e) => {
+            log::error!("DB error fetching draft {draft_id}: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Database error"
+            }))
+        }
+    }
 }
+
 
 pub fn init(cfg: &mut web::ServiceConfig) {
     cfg.service(list_drafts)
