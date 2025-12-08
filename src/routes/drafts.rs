@@ -215,9 +215,40 @@ async fn list_drafts(user: AuthenticatedUser) -> HttpResponse {
     let rows = sqlx::query!(
         "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at 
          FROM drafts 
-         WHERE user_email = $1 
+         WHERE user_email = $1
          ORDER BY created_at DESC",
         user.email
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap();
+
+    let drafts: Vec<_> = rows.into_iter().map(|r| {
+        serde_json::json!({
+            "id": r.id,
+            "email_id": r.email_id,
+            "content": r.content,
+            "tone": r.tone,
+            "status": r.status,
+            "created_at": r.created_at
+        })
+    }).collect();
+
+    HttpResponse::Ok().json(drafts)
+}
+
+#[get("/drafts/{id}")]
+async fn list_drafts(path: web::Path<i32>,user: AuthenticatedUser) -> HttpResponse {
+    let draft_id = path.into_inner();
+    let pool = db::get_pool();
+
+    let rows = sqlx::query!(
+        "SELECT id, email_id, user_email, content, tone, status, created_at, updated_at 
+         FROM drafts 
+         WHERE user_email = $1,id = $2
+         ORDER BY created_at DESC",
+        user.email
+,draft_id
     )
     .fetch_all(pool)
     .await
