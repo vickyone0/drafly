@@ -238,7 +238,7 @@ async fn list_drafts(user: AuthenticatedUser) -> HttpResponse {
 }
 
 #[get("/drafts/{id}")]
-async fn list_drafts(path: web::Path<i32>,user: AuthenticatedUser) -> HttpResponse {
+async fn single_draft(path: web::Path<i32>,user: AuthenticatedUser) -> HttpResponse {
     let draft_id = path.into_inner();
     let pool = db::get_pool();
 
