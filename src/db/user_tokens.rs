@@ -1,17 +1,22 @@
 use crate::db::get_pool;
 
-pub async fn insert_token(email: &str, token: &str) -> Result<(), sqlx::Error>{
+pub async fn insert_token(email: &str, token: &str) -> Result<(), sqlx::Error> {
     sqlx::query!(
-        "INSERT INTO user_tokens (email, refresh_token)
-         VALUES ($1, $2)",
+        r#"
+        INSERT INTO user_tokens (email, refresh_token)
+        VALUES ($1, $2)
+        ON CONFLICT (email)
+        DO UPDATE SET refresh_token = EXCLUDED.refresh_token
+        "#,
         email,
         token
     )
     .execute(get_pool())
-    .await
-    .unwrap();
+    .await?;
+
     Ok(())
 }
+
 
 pub async fn get_refresh_token(email: &str) -> Option<String> {
     let row = sqlx::query!(
