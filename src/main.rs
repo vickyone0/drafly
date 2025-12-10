@@ -25,7 +25,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin(&frontend_url)
-            .allowed_origin("https://courageous-pastelito-af3c6f.netlify.app")
+            .allowed_origin("http://localhost:3000")
             .allowed_methods(vec!["GET", "POST", "PATCH", "PUT", "DELETE"])
             .allowed_headers(vec![
                 actix_web::http::header::CONTENT_TYPE,
