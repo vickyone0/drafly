@@ -7,6 +7,7 @@ mod models;
 mod routes;
 mod services;
 mod middleware;
+mod tasks;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -19,6 +20,7 @@ async fn main() -> std::io::Result<()> {
         .unwrap_or_else(|_| "http://localhost:3000".to_string());
 
     println!("CORS ALLOWED ORIGIN = {}", frontend_url);
+    tasks::cron::start_cron().await;
 
     HttpServer::new(move || {
         let cors = Cors::default()
