@@ -6,7 +6,9 @@ use crate::services::{google_oauth, jwt};
 
 pub fn init(cfg: &mut web::ServiceConfig) {
     cfg.service(start_google_auth)
-       .service(google_callback);
+       .service(google_callback)
+       .service(health_check);
+
 }
 
 #[get("/auth/google/start")]
@@ -85,4 +87,12 @@ async fn google_callback(query: web::Query<CallbackQuery>) -> Result<HttpRespons
         .append_header(("Location", redirect_url))
         .finish())
 
+}
+
+
+#[get("/health")] 
+async fn health_check() -> HttpResponse {
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "ok"
+    }))
 }
