@@ -291,4 +291,5 @@ For issues and questions, please open an issue on GitHub.
 - Frontend powered by [Next.js](https://nextjs.org/)
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
 - AI powered by [Groq](https://groq.com/)
+pulling
 
